@@ -1,25 +1,43 @@
 # Wesleyan Local Co-op - Survey Management Code
-# Codebase by Wyatt Rees
-# Modified, Debugged, Tested by Adam M. S. Rahman
+# Author: Adam S. Rahman
 
+import sys
 from openpyxl import Workbook
 from openpyxl import load_workbook
-raw = load_workbook("input.xlsx") # Raw Qualtrics data goes here
+input_name = str(sys.argv[1])
+output_name = str(sys.argv[2])
+raw = load_workbook(input_name) # Raw Qualtrics data goes here
 raw_s = raw.active
+
+# share_prices = {
+#     "produce": 105.0,
+#     "meat": 50.0,
+#     "eggs": 28.0,
+#     "bread": 57.0,
+#     "dairy": 65.0,
+#     "cheese": 100.0,
+#     "preserves": 45.0,
+#     "coffee": 67.5,
+#     "tofu": 17.0, 
+#     "seitan": 29.0,
+#     "mushroom": 13.0
+# }
 
 # Share Prices - May change from year-to-year
 produceshare = 105.0
 meatshare = 50.0
 eggshare = 28.0
-breadshare = 57.0
+breadshare = 63.0
 dairyshare = 65.0
-cheeseshare = 100.0
+cheeseshare = 115.0
 preservesshare = 45.0
 coffeeshare = 67.5
-tofushare = 17.0
-seitanshare = 29.0
-shares = [produceshare, meatshare, eggshare, breadshare, dairyshare, cheeseshare, preservesshare, coffeeshare, tofushare, seitanshare]
-coops = ["Produce", "Meat", "Eggs", "Bread", "Dairy", "Cheese", "Preserves", "Coffee" , "Tofu", "Seitan"]
+tofushare = 19.0
+seitanshare = 31.0
+mushroomshare = 60.0
+shares = [produceshare, meatshare, eggshare, breadshare, dairyshare, cheeseshare, preservesshare, coffeeshare, tofushare, seitanshare, mushroomshare]
+coops = ["Produce", "Meat", "Eggs", "Bread", "Dairy", "Cheese", "Preserves", "Coffee" , "Tofu", "Seitan", "Mushroom"]
+
 
 alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 wb = Workbook()
@@ -70,7 +88,6 @@ ws['AO1'] = "Dairy Charge"
 for i in range(1,7):
     ws.cell(row=1,column=41+i).value = "Split Percent" + str(i)
 
-
 #CHEESE
 ws['AV1'] = "Cheese Shares"
 ws['AW1'] = "Cheese Charge"
@@ -101,13 +118,19 @@ ws['CC1'] = "Seitan Charge"
 for i in range(1,7):
     ws.cell(row=1,column=81+i).value = "Split Percent" + str(i)
 
+#MUSHROOM
+ws['CJ1'] = "Mushroom Shares"
+ws['CK1'] = "Mushroom Charge"
+for i in range(1,7):
+    ws.cell(row=1,column=89+i).value = "Split Percent" + str(i)
+
 #NOTES
-ws['CJ1'] = "Notes"
+ws['CR1'] = "Notes"
 
 #TOTAL CHARGES
-ws['CK1'] = "Total Group Charge"
+ws['CS1'] = "Total Group Charge"
 for i in range(1,7):
-    ws.cell(row=1,column=89+i).value = "Person " + str(i) + " charge"
+    ws.cell(row=1,column=97+i).value = "Person " + str(i) + " charge"
 
 
 def find(x,l):
@@ -130,13 +153,13 @@ while e: #find total number of groups
         i += 1
 
 
-print "total number of groups: " + str(total_groups)
+print("total number of groups: " + str(total_groups))
 
 
 #SHARES BY GROUP TAB
 for i in range(1,total_groups + 1):
     #initialize row in new workbook:
-    for j in range(95):
+    for j in range(103):
         ws.cell(row = i+1 , column = j+1)
     new_row=ws.rows[i][:]
     cur_row=raw_s.rows[i][:]
@@ -168,7 +191,7 @@ for i in range(1,total_groups + 1):
     #apply individual charges for each coop
     raw_i = 19 #column T
     new_i = 7
-    for coop in range(10):
+    for coop in range(11):
         share = shares[coop] #get share price
         if cur_row[raw_i].value == None or cur_row[raw_i].value == 0: #pass if not participating
             pass
@@ -180,7 +203,7 @@ for i in range(1,total_groups + 1):
         new_i += 8
 
 
-print "total number of people in co-op: " + str(total_people)
+print("total number of people in co-op: " + str(total_people))
 #initialize cells in totals sheet
 for r in range(total_people + 1):
     for c in range(12):
@@ -195,7 +218,7 @@ for coop in range(len(coops)):
 #copy totals and splitting percentages
 cnt = 1
 for i in range(1,total_groups+1):
-    print "copying totals for group " + str(i)
+    print("copying totals for group " + str(i))
     group=raw_s.rows[i][1:8]
     charges = ws.rows[i][:]
     notempty = True
@@ -215,7 +238,7 @@ for i in range(1,total_groups+1):
     for person in range(1,groupsize+1):
         total_cost=0
         totals.cell(row = cnt + person, column = 1).value = group[person-1].value        #name
-        for coop in range(10):
+        for coop in range(11):
             #print coops[coop]
             #participating = raw_s.cell(row = i+1, column = 21+14*coop+person-1).value
             participating = raw_s.rows[i][20+14*coop:26+14*coop]
@@ -242,9 +265,9 @@ for i in range(1,total_groups+1):
                 total_cost+=cost
             ws.cell(row = i+1,column = 10+8*coop+person-1).value = percent
             totals.cell(row = cnt+person, column = 3+coop).value = cost
-        ws.cell(row = i + 1, column = 89+person).value = total_cost
+        ws.cell(row = i + 1, column = 97+person).value = total_cost
         group_cost+=total_cost
-    ws.cell(row = i + 1, column = 89).value = group_cost
+    ws.cell(row = i + 1, column = 97).value = group_cost
     cnt += groupsize
 
 # Contact Info
@@ -260,7 +283,7 @@ for i in range(1,total_groups+1):
 
 
 # Members of each co-op
-for coop in range(10):
+for coop in range(11):
     members.cell(row=1,column=coop+1).value = coops[coop]
     cnt = 0
     for i in range(total_people):
@@ -273,7 +296,7 @@ emails = wb.create_sheet()
 emails.title = "Emails"
 
 # Create email lists for each co-op
-for coop in range(10):
+for coop in range(11):
     emails.cell(row=1,column=coop+1).value=coops[coop]
     cnt=2
     for i in range(2,total_groups+2):
@@ -290,4 +313,4 @@ for coop in range(10):
                     cnt+=1
 
 # Final export
-wb.save("output.xlsx")
+wb.save(output_name)
