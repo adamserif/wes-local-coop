@@ -22,7 +22,7 @@ def compute_totals():
         f_string= request.files['survey_responses'].read()
         resp_df = pd.read_csv(io.BytesIO(f_string), encoding='utf8')
 
-        resp_df = resp_df.drop(resp_df.columns[list(range(12))], axis=1).iloc[1:]
+        resp_df = resp_df.drop(resp_df.columns[list(range(12))], axis=1).iloc[1:].replace(r'^\s+$', None, regex=True)
 
         shares = [form.produce.data, form.meat.data, form.egg.data, form.bread.data, 
                   form.dairy.data, form.cheese.data, form.preserves.data, form.coffee.data, 

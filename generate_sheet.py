@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.writer.excel import save_virtual_workbook
@@ -17,7 +18,7 @@ def generate_totals_sheet(shares, resp_df):
     raw = Workbook()
     raw_s = raw.active
 
-    for r in dataframe_to_rows(resp_df, index=True, header=False):
+    for r in dataframe_to_rows(resp_df , index=True, header=False):
         raw_s.append(r)
 
     raw.save('test.xlsx')
@@ -150,12 +151,13 @@ def generate_totals_sheet(shares, resp_df):
         notempty = True
         groupsize = 1
         k = 2
-        comments = []
         #find group size
         while notempty:
             c = cur_row[k]
             k += 1
-            if c.value == " " or c.value == None:
+            if c.value == "" or c.value == None or c.value == float('nan'):
+                notempty = False
+            elif type(c.value) != str:
                 notempty = False
             elif groupsize == 6:
                 notempty = False
@@ -209,6 +211,8 @@ def generate_totals_sheet(shares, resp_df):
         while notempty:
             c = group[k]
             if c.value == None or c.value == " ":
+                notempty = False
+            elif type(c.value) != str:
                 notempty = False
             elif groupsize == 6:
                 notempty = False
